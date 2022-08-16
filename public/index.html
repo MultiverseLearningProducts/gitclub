@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GitClub</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header>
+      <h1>GitClub</h1>
+    </header>
+    <main>
+      <p>
+        <a href="/login">Log in</a>
+      </p>
+    </main>
+    <script type="module">
+      import { STORAGE_KEY } from "./globals.js";
+
+      if (localStorage.getItem(STORAGE_KEY)) {
+        location.replace("/app");
+      }
+    </script>
+  </body>
+</html>
