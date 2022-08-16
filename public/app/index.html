@@ -38,20 +38,20 @@
 
       function getRepoHTML(repo) {
         return `
-            <article>
-              <header>
-                <h2>
-                  <a href="${repo.html_url}">${repo.name}</a>
-                </h2>
-                <p>${repo.description}</p>
-              </header>
-              <ul>
-                <li>${repo.stargazers_count} stars</li>
-                <li>${repo.watchers_count} watching</li>
-                <li>${repo.forks_count} forks</li>
-              </ul>
-            </article>
-          `;
+          <article>
+            <header>
+              <h2>
+                <a href="${repo.html_url}">${repo.name}</a>
+              </h2>
+              <p>${repo.description}</p>
+            </header>
+            <ul>
+              <li>${repo.stargazers_count} stars</li>
+              <li>${repo.watchers_count} watching</li>
+              <li>${repo.forks_count} forks</li>
+            </ul>
+          </article>
+        `;
       }
 
       function render(data) {
