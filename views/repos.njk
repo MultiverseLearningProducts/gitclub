@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Your Repos - GitClub</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Your Repos</h1>
+    </header>
+    <main>
+      {% for repo in repos %}
+      <article>
+        <header>
+          <h2>
+            <a href="{{ repo.html_url }}">{{ repo.name }}</a>
+          </h2>
+          <p>{{ repo.description }}</p>
+        </header>
+        <ul>
+          <li>{{ repo.stargazers_count }} stars</li>
+          <li>{{ repo.watchers_count }} watching</li>
+          <li>{{ repo.forks_count }} forks</li>
+        </ul>
+      </article>
+      {% endfor %}
+    </main>
+  </body>
+</html>
