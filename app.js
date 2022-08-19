@@ -1,4 +1,5 @@
 import "dotenv/config";
+import NodeCache from "node-cache";
 import axios from "axios";
 import cookieParser from "cookie-parser";
 import express from "express";
@@ -13,6 +14,8 @@ import session from "express-session";
 
 const __DIRNAME = fileURLToPath(new URL(".", import.meta.url));
 const STATE_KEY = "github_auth_state";
+
+const cache = new NodeCache({ stdTTL: 100, checkperiod: 120 });
 
 const app = express();
 const sessionSettings = {
@@ -55,6 +58,14 @@ function repos(req, res) {
     return;
   }
 
+  const cachedRepos = cache.get("repos");
+
+  if (cachedRepos) {
+    console.log("Serving cached data");
+    res.render("repos", { repos: cachedRepos });
+    return;
+  }
+
   const requestConfig = {
     method: "get",
     headers: { Authorization: `token ${token}` },
@@ -63,6 +74,8 @@ function repos(req, res) {
 
   axios(requestConfig)
     .then(function ({ data: repos }) {
+      console.log("Serving fresh data");
+      cache.set("repos", repos);
       res.render("repos", { repos });
     })
     .catch(function (error) {
