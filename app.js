@@ -1,23 +1,3 @@
-//
-// Type definitions
-//
-
-/**
- * @typedef { import("express").Request } Request
- */
-
-/**
- * @typedef { import("express").Response } Response
- */
-
-/**
- * @typedef { import("express").NextFunction } NextFunction
- */
-
-//
-// Imports
-//
-
 import "dotenv/config";
 import axios from "axios";
 import cookieParser from "cookie-parser";
@@ -48,8 +28,8 @@ const sessionSettings = {
 
 /**
  * Handle the / route.
- * @param {Request} req The Request object.
- * @param {Response} res The Response object.
+ * @param {express.Request} req The Request object.
+ * @param {express.Response} res The Response object.
  */
 function index(req, res) {
   const { token } = req.session;
@@ -64,8 +44,8 @@ function index(req, res) {
 
 /**
  * Handle the /repos route.
- * @param {Request} req The Request object.
- * @param {Response} res The Response object.
+ * @param {express.Request} req The Request object.
+ * @param {express.Response} res The Response object.
  */
 function repos(req, res) {
   const { token } = req.session;
@@ -93,8 +73,8 @@ function repos(req, res) {
 
 /**
  * Handle the /login route.
- * @param {Request} _req The Request object.
- * @param {Response} res The Response object.
+ * @param {express.Request} _req The Request object.
+ * @param {express.Response} res The Response object.
  */
 function login(_req, res) {
   const state = randomUUID();
@@ -111,9 +91,9 @@ function login(_req, res) {
 
 /**
  * Handle the /callback route.
- * @param {Request} req The Request object.
- * @param {Response} res The Response object.
- * @param {NextFunction} next The next function in the request-response cycle.
+ * @param {express.Request} req The Request object.
+ * @param {express.Response} res The Response object.
+ * @param {express.NextFunction} next The next function in the request-response cycle.
  */
 function callback(req, res, next) {
   const { code, state } = req.query;
