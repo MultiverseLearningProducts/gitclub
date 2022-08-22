@@ -25,6 +25,8 @@
           <li>{{ repo.forks_count }} forks</li>
         </ul>
       </article>
+      {% else %}
+      <p>You don't have any repos yet.</p>
       {% endfor %}
     </main>
   </body>
