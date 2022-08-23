@@ -18,6 +18,8 @@ const STATE_KEY = "github_auth_state";
 const cache = new NodeCache({ stdTTL: 100, checkperiod: 120 });
 
 const app = express();
+const cookieware = cookieParser();
+
 const sessionSettings = {
   cookie: { maxAge: 1000 * 60 * 60 * 24 }, // 1 day
   resave: false,
@@ -169,17 +171,14 @@ nunjucks.configure("views", {
 app.set("views", "./views").set("view engine", "njk");
 
 // Middleware
-app
-  .use(express.static(`${__DIRNAME}/public`))
-  .use(cookieParser())
-  .use(session(sessionSettings));
+app.use(express.static(`${__DIRNAME}/public`)).use(session(sessionSettings));
 
 // Routes
 app
   .get("/", index)
   .get("/repos", repos)
   .get("/login", login)
-  .get("/callback", callback);
+  .get("/callback", cookieware, callback);
 
 // Listener
 app.listen(process.env.PORT, () => {
