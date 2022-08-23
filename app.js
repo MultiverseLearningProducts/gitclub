@@ -99,9 +99,8 @@ function login(_req, res) {
     state,
   });
 
-  res
-    .cookie(STATE_KEY, state)
-    .redirect(`https://github.com/login/oauth/authorize?${params.toString()}`);
+  res.cookie(STATE_KEY, state);
+  res.redirect(`https://github.com/login/oauth/authorize?${params.toString()}`);
 }
 
 /**
@@ -114,6 +113,8 @@ function callback(req, res, next) {
   const { code, state } = req.query;
   const storedState = req.cookies?.[STATE_KEY];
 
+  // If the states don't match, then a third party created the request,
+  // and we should abort the process.
   if (!state || state !== storedState) {
     res.redirect("/");
     return;
@@ -161,26 +162,22 @@ function callback(req, res, next) {
 // Inits
 //
 
-// Template engine config
 nunjucks.configure("views", {
   autoescape: true,
   express: app,
 });
 
-// Settings
-app.set("views", "./views").set("view engine", "njk");
+app.set("views", "./views");
+app.set("view engine", "njk");
 
-// Middleware
-app.use(express.static(`${__DIRNAME}/public`)).use(session(sessionSettings));
+app.use(express.static(`${__DIRNAME}/public`));
+app.use(session(sessionSettings));
 
-// Routes
-app
-  .get("/", index)
-  .get("/repos", repos)
-  .get("/login", login)
-  .get("/callback", cookieware, callback);
+app.get("/", index);
+app.get("/repos", repos);
+app.get("/login", login);
+app.get("/callback", cookieware, callback);
 
-// Listener
 app.listen(process.env.PORT, () => {
-  console.log(`Listening on port ${process.env.PORT}...`);
+  console.log(`Listening at http://localhost:${process.env.PORT}...`);
 });
