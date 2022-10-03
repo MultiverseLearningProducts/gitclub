@@ -109,8 +109,8 @@ function callback(req, res, next) {
 
   // Regenerate the session, which is good practice to help
   // guard against forms of session fixation.
-  req.session.regenerate((err) => {
-    if (err) next(err);
+  req.session.regenerate((error) => {
+    if (error) next(error);
 
     const params = new URLSearchParams({
       client_id: process.env.CLIENT_ID,
@@ -133,8 +133,8 @@ function callback(req, res, next) {
 
         // Save the session before redirection to ensure page
         // load does not happen before session is saved.
-        req.session.save((err) => {
-          if (err) return void next(err);
+        req.session.save((error) => {
+          if (error) return void next(error);
           res.redirect("/repos");
         });
       })
