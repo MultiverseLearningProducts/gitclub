@@ -94,6 +94,29 @@ function login(_req, res) {
 }
 
 /**
+ * Handle the /logout route.
+ * @param {express.Request} _req The Request object.
+ * @param {express.Response} res The Response object.
+ * @param {express.NextFunction} next The next function in the request-response cycle.
+ */
+function logout(req, res, next) {
+  delete req.session.token;
+
+  // Save to ensure that re-using the old session ID
+  // does not have a logged in user.
+  req.session.save((error) => {
+    if (error) next(error);
+
+    // Regenerate the session, which is good practice to help
+    // guard against forms of session fixation.
+    req.session.regenerate((error) => {
+      if (error) next(error);
+      res.redirect("/");
+    });
+  });
+}
+
+/**
  * Handle the /callback route.
  * @param {express.Request} req The Request object.
  * @param {express.Response} res The Response object.
@@ -163,6 +186,7 @@ app.use(session(sessionSettings));
 app.get("/", index);
 app.get("/repos", repos);
 app.get("/login", login);
+app.get("/logout", logout);
 app.get("/callback", cookieParser(), callback);
 
 app.listen(port, () => {
