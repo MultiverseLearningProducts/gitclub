@@ -1,27 +1,27 @@
-import "dotenv/config";
-import NodeCache from "node-cache";
-import axios from "axios";
-import cookieParser from "cookie-parser";
-import express from "express";
-import { fileURLToPath } from "url";
-import nunjucks from "nunjucks";
-import { randomUUID } from "crypto";
-import session from "express-session";
+"use strict";
+
+require("dotenv").config();
+
+const NodeCache = require("node-cache");
+const cookieParser = require("cookie-parser");
+const express = require("express");
+const nunjucks = require("nunjucks");
+const path = require("path");
+const session = require("express-session");
+const { default: axios } = require("axios");
+const { randomUUID } = require("crypto");
 
 //
 // Constants
 //
 
-const __DIRNAME = fileURLToPath(new URL(".", import.meta.url));
-const STATE_KEY = "github_auth_state";
-
+const app = express();
+const port = process.env.PORT || 3000;
+const stateKey = "github_auth_state";
 const cache = new NodeCache({ stdTTL: 100, checkperiod: 120 });
 
-const app = express();
-const cookieware = cookieParser();
-
 const sessionSettings = {
-  cookie: { maxAge: 1000 * 60 * 60 * 24 }, // 1 day
+  cookie: { maxAge: 1000 * 60 * 60 * 24 },
   resave: false,
   saveUninitialized: true,
   secret: process.env.SESSION_SECRET,
@@ -38,13 +38,8 @@ const sessionSettings = {
  */
 function index(req, res) {
   const { token } = req.session;
-
-  if (token) {
-    res.redirect("/repos");
-    return;
-  }
-
-  res.render("index");
+  if (!token) return void res.render("index");
+  res.redirect("/repos");
 }
 
 /**
@@ -54,18 +49,13 @@ function index(req, res) {
  */
 function repos(req, res) {
   const { token } = req.session;
+  if (!token) return void res.redirect("/");
 
-  if (!token) {
-    res.redirect("/");
-    return;
-  }
+  const repos = cache.get("repos");
 
-  const cachedRepos = cache.get("repos");
-
-  if (cachedRepos) {
+  if (repos) {
     console.log("Serving cached data");
-    res.render("repos", { repos: cachedRepos });
-    return;
+    return void res.render("repos", { repos });
   }
 
   const requestConfig = {
@@ -75,13 +65,13 @@ function repos(req, res) {
   };
 
   axios(requestConfig)
-    .then(function ({ data: repos }) {
+    .then(({ data: repos }) => {
       console.log("Serving fresh data");
       cache.set("repos", repos);
       res.render("repos", { repos });
     })
-    .catch(function (error) {
-      console.log("Something went wrong:", error);
+    .catch((error) => {
+      console.error("Something went wrong:", error);
       res.redirect("/");
     });
 }
@@ -99,7 +89,7 @@ function login(_req, res) {
     state,
   });
 
-  res.cookie(STATE_KEY, state);
+  res.cookie(stateKey, state);
   res.redirect(`https://github.com/login/oauth/authorize?${params.toString()}`);
 }
 
@@ -111,19 +101,16 @@ function login(_req, res) {
  */
 function callback(req, res, next) {
   const { code, state } = req.query;
-  const storedState = req.cookies?.[STATE_KEY];
+  const savedState = req.cookies?.[stateKey];
 
   // If the states don't match, then a third party created the request,
   // and we should abort the process.
-  if (!state || state !== storedState) {
-    res.redirect("/");
-    return;
-  }
+  if (!state || state !== savedState) return void res.redirect("/");
 
   // Regenerate the session, which is good practice to help
   // guard against forms of session fixation.
   req.session.regenerate((err) => {
-    if (err) next(err);
+    if (err) return void next(err);
 
     const params = new URLSearchParams({
       client_id: process.env.CLIENT_ID,
@@ -137,22 +124,22 @@ function callback(req, res, next) {
       url: `https://github.com/login/oauth/access_token?${params.toString()}`,
     };
 
-    res.clearCookie(STATE_KEY);
+    res.clearCookie(stateKey);
 
     axios(requestConfig)
-      .then(function ({ data: { access_token } }) {
+      .then(({ data }) => {
         // Store access token in session.
-        req.session.token = access_token;
+        req.session.token = data.access_token;
 
         // Save the session before redirection to ensure page
         // load does not happen before session is saved.
         req.session.save((err) => {
-          if (err) return next(err);
+          if (err) return void next(err);
           res.redirect("/repos");
         });
       })
-      .catch(function (err) {
-        console.log("Something went wrong:", err);
+      .catch((err) => {
+        console.error("Something went wrong:", err);
         res.redirect("/");
       });
   });
@@ -167,17 +154,17 @@ nunjucks.configure("views", {
   express: app,
 });
 
-app.set("views", "./views");
+app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "njk");
 
-app.use(express.static(`${__DIRNAME}/public`));
+app.use(express.static(path.join(__dirname, "public")));
 app.use(session(sessionSettings));
 
 app.get("/", index);
 app.get("/repos", repos);
 app.get("/login", login);
-app.get("/callback", cookieware, callback);
+app.get("/callback", cookieParser(), callback);
 
-app.listen(process.env.PORT, () => {
-  console.log(`Listening at http://localhost:${process.env.PORT}...`);
+app.listen(port, () => {
+  console.log(`Listening at http://localhost:${port} ...`);
 });
