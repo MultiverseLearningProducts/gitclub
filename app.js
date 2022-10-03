@@ -138,8 +138,8 @@ function callback(req, res, next) {
           res.redirect("/repos");
         });
       })
-      .catch((err) => {
-        console.error("Something went wrong:", err);
+      .catch((error) => {
+        console.error("Something went wrong:", error);
         res.redirect("/");
       });
   });
