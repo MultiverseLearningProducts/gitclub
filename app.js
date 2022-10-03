@@ -110,7 +110,7 @@ function callback(req, res, next) {
   // Regenerate the session, which is good practice to help
   // guard against forms of session fixation.
   req.session.regenerate((err) => {
-    if (err) return void next(err);
+    if (err) next(err);
 
     const params = new URLSearchParams({
       client_id: process.env.CLIENT_ID,
